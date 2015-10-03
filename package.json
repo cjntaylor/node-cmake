@@ -1,0 +1,11 @@
+{
+  "name": "node-cmake",
+  "author": "Colin Taylor <cjntaylor@gmail.com>",
+  "version": "0.1.0",
+  "description": "A CMake-based build system for node.js native modules",
+  "keywords": [ 
+    "cmake", "native", "module", "build"
+  ],
+  "license": "ISC",
+  "main": "index.js"
+}
