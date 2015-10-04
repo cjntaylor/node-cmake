@@ -345,11 +345,16 @@ else()
     endif()
 endif()
 
+# Find and include the Nan package
+nodejs_find_module_fallback(nan ${CMAKE_CURRENT_SOURCE_DIR} NodeJS_NAN_PATH)
+list(APPEND NodeJS_INCLUDE_DIRS ${NodeJS_NAN_PATH})
+
 # This is a find_package file, handle the standard invocation
 include(FindPackageHandleStandardArgs)
+set(NodeJS_TARGET "${NodeJS_PLATFORM}/${NodeJS_ARCH}")
 find_package_handle_standard_args(NodeJS
     FOUND_VAR NodeJS_FOUND
-    REQUIRED_VARS NodeJS_INCLUDE_DIRS
+    REQUIRED_VARS NodeJS_TARGET NodeJS_INCLUDE_DIRS NodeJS_NAN_PATH
     VERSION_VAR NodeJS_VERSION
 )
 
@@ -390,4 +395,6 @@ mark_as_advanced(
     NodeJS_WIN32_LIBRARY_CHECKSUM
     NodeJS_WIN32_BINARY_FILE
     NodeJS_WIN32_BINARY_CHECKSUM
+    NodeJS_NAN_PATH
+    NodeJS_TARGET
 )

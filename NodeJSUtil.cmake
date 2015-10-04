@@ -100,3 +100,33 @@ function(nodejs_extract FILE DIR)
     # is used
     file(REMOVE_RECURSE ${EXTRACT_DIR})
 endfunction()
+
+function(nodejs_find_module NAME BASE PATH)
+    # Find a node module using the same search path that require uses
+    # without needing a node binary
+    set(ROOT ${BASE})
+    set(DRIVE "^[A-Za-z]?:?/$")
+
+    # Walk up the directory tree until at the root
+    while(NOT ROOT MATCHES ${DRIVE} AND NOT 
+        EXISTS ${ROOT}/node_modules/${NAME})
+        get_filename_component(ROOT ${ROOT} DIRECTORY)
+    endwhile()
+
+    # Operate like the CMake find_* functions, returning NOTFOUND if the
+    # module can't be found
+    if(ROOT MATCHES ${DRIVE})
+        set(${PATH} ${NAME}-NOTFOUND PARENT_SCOPE)
+    else()
+        set(${PATH} ${ROOT}/node_modules/${NAME} PARENT_SCOPE)
+    endif()
+endfunction()
+
+macro(nodejs_find_module_fallback NAME BASE PATH)
+    # Look in the provided path first
+    # If the module isn't found, try searching from the module
+    nodejs_find_module(${NAME} ${BASE} ${PATH})
+    if(NOT ${PATH})
+        nodejs_find_module(${NAME} ${NodeJS_MODULE_PATH} ${PATH})
+    endif()
+endmacro()
