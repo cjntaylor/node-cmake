@@ -34,12 +34,15 @@ find_program(NodeJS_EXECUTABLE
     PATHS ${NodeJS_ROOT_DIR}
     PATH_SUFFIXES nodejs node
 )
-execute_process(
-    COMMAND ${NodeJS_EXECUTABLE} --version
-    RESULT_VARIABLE NodeJS_VALIDATE_EXECUTABLE
-    OUTPUT_VARIABLE NodeJS_INSTALLED_VERSION
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-)
+set(NodeJS_VALIDATE_EXECUTABLE 1)
+if(NodeJS_EXECUTABLE)
+    execute_process(
+        COMMAND ${NodeJS_EXECUTABLE} --version
+        RESULT_VARIABLE NodeJS_VALIDATE_EXECUTABLE
+        OUTPUT_VARIABLE NodeJS_INSTALLED_VERSION
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+endif()
 
 # If node isn't the node.js binary, try the nodejs binary
 if(NOT NodeJS_VALIDATE_EXECUTABLE EQUAL 0)
@@ -48,12 +51,15 @@ if(NOT NodeJS_VALIDATE_EXECUTABLE EQUAL 0)
         PATHS ${NodeJS_ROOT_DIR}
         PATH_SUFFIXES nodejs node
     )
-    execute_process(
-        COMMAND ${NodeJS_EXECUTABLE} --version
-        RESULT_VARIABLE NodeJS_VALIDATE_EXECUTABLE
-        OUTPUT_VARIABLE NodeJS_INSTALLED_VERSION
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-    )
+    set(NodeJS_VALIDATE_EXECUTABLE 1)
+    if(NodeJS_EXECUTABLE)
+        execute_process(
+            COMMAND ${NodeJS_EXECUTABLE} --version
+            RESULT_VARIABLE NodeJS_VALIDATE_EXECUTABLE
+            OUTPUT_VARIABLE NodeJS_INSTALLED_VERSION
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+        )
+    endif()
 
     if(NOT NodeJS_VALIDATE_EXECUTABLE EQUAL 0)
         message(WARNING "Node.js executable could not be found. \
@@ -62,6 +68,7 @@ if(NOT NodeJS_VALIDATE_EXECUTABLE EQUAL 0)
     endif()
 endif()
 
+# Determine if a variant is set in the components
 list(APPEND NodeJS_OTHER_COMPONENTS
     X64 IA32 ARM WIN32 LINUX DARWIN
 )
@@ -200,6 +207,10 @@ endif()
 #Include helper functions
 include(NodeJSUtil)
 
+# Default variant name
+# Used by the installed header comparison below
+set(NodeJS_DEFAULT_VARIANT_NAME "node.js")
+
 # Variables for Node.js artifacts across variants
 # Specify all of these variables for each new variant
 set(NodeJS_VARIANT_NAME "")       # The printable name of the variant
@@ -208,27 +219,28 @@ set(NodeJS_URL "")                # The URL for the artifacts
 set(NodeJS_SOURCE_PATH "")        # The URL path of the source archive
 set(NodeJS_CHECKSUM_PATH "")      # The URL path of the checksum file
 set(NodeJS_CHECKSUM_TYPE "")      # The checksum type (algorithm)
-set(NodeJS_WIN32_LIBRARY_PATH "") # The URL path of the windows lib
+set(NodeJS_WIN32_LIBRARY_PATH "") # The URL path of the windows library
+set(NodeJS_WIN32_LIBRARY_NAME "") # The name of the windows library
 set(NodeJS_WIN32_BINARY_PATH "")  # The URL path of the windows executable (opt)
+set(NodeJS_WIN32_BINARY_NAME "")  # The name of the windows executable (opt)
 
-set(NodeJS_INCLUDE_PATHS "") # Set of header prefixes inside the source archive
-set(NodeJS_LIBRARIES "")     # The set of libraries to link the addon against
+set(NodeJS_DEFAULT_INCLUDE True)  # Enable default include behavior
+set(NodeJS_DEFAULT_LIBS True)     # Include the default libraries
+set(NodeJS_HAS_WIN32_BINARY True) # Does the variant have win32 executables
+set(NodeJS_HEADER_VERSION 0.12.7) # Version after header-only archives start
+set(NodeJS_SHA256_VERSION 0.7.0)  # Version after sha256 checksums start
+set(NodeJS_PREFIX_VERSION 0.12.7) # Version after windows prefixing starts
+set(NodeJS_SOURCE_INCLUDE True)   # Use the include paths from a source archive
+set(NodeJS_HEADER_INCLUDE False)  # Use the include paths from a header archive
+set(NodeJS_INCLUDE_PATHS "")      # Set of header dirs inside the source archive
+set(NodeJS_LIBRARIES "")          # The set of libraries to link with addon
+set(NodeJS_WIN32_DELAYLOAD "")    # Set of executables to delayload on windows
 
 # NodeJS variants
 # Selects download target based on configured component
+# Include NodeJS last to provide default configurations when omitted
+include(IOJS)
 include(NodeJS)
-
-# Allow variants to specify the name of the library and executable for
-# windows
-# 
-# If not specified, fall back to using the variant name and standard
-# output extensions
-if(NOT NodeJS_WIN32_LIBRARY_NAME)
-    set(NodeJS_WIN32_LIBRARY_NAME ${NodeJS_VARIANT_BASE}.lib)
-endif()
-if(NOT NodeJS_WIN32_BINARY_NAME)
-    set(NodeJS_WIN32_BINARY_NAME ${NodeJS_VARIANT_BASE}.exe)
-endif()
 
 # If the version we're looking for is the version that is installed,
 # try finding the required headers. Don't do this under windows (where
@@ -236,7 +248,7 @@ endif()
 # specified that headers should be downloaded or when using a variant other
 # than the default
 if((NOT NodeJS_PLATFORM_WIN32) AND (NOT NodeJS_DOWNLOAD) AND
-    NodeJS_VARIANT_NAME STREQUAL NodeJS_DEFAULT_VARIANT AND
+    NodeJS_VARIANT_NAME STREQUAL NodeJS_DEFAULT_VARIANT_NAME AND
     NodeJS_INSTALLED_VERSION STREQUAL NodeJS_VERSION_STRING)
     # node.h is really generic and too easy for cmake to find the wrong
     # file, so use the directory as a guard, and then just tack it on to
@@ -320,6 +332,7 @@ else()
             ${NodeJS_CHECKSUM_TYPE}
             ${NodeJS_FORCE_DOWNLOAD}
         )
+        list(APPEND NodeJS_LIBRARIES ${NodeJS_WIN32_LIBRARY_FILE})
 
         # If provided, download the windows executable
         if(NodeJS_WIN32_BINARY_PATH AND 
@@ -349,9 +362,31 @@ endif()
 nodejs_find_module_fallback(nan ${CMAKE_CURRENT_SOURCE_DIR} NodeJS_NAN_PATH)
 list(APPEND NodeJS_INCLUDE_DIRS ${NodeJS_NAN_PATH})
 
+# Support windows delay loading
+if(NodeJS_PLATFORM_WIN32)
+    set(NodeJS_WIN32_DELAYLOAD_CONDITION "")
+    set(NodeJS_WIN32_DELAYLOAD_FLAGS "")
+    foreach(NodeJS_WIN32_DELAYLOAD_BINARY ${NodeJS_WIN32_DELAYLOAD})
+        list(APPEND NodeJS_WIN32_DELAYLOAD_CONDITION
+            "_stricmp(info->szDll, \"${NodeJS_WIN32_DELAYLOAD_BINARY}\") != 0"
+        )
+        list(APPEND NodeJS_WIN32_DELAYLOAD_FLAGS 
+            "/DELAYLOAD:${NodeJS_WIN32_DELAYLOAD_BINARY}"
+        )
+    endforeach()
+    string(REPLACE ";" " &&\n     " 
+        NodeJS_WIN32_DELAYLOAD_CONDITION
+        "${NodeJS_WIN32_DELAYLOAD_CONDITION}"
+    )
+    configure_file(
+        ${CMAKE_CURRENT_LIST_DIR}/src/win_delay_load_hook.c
+        ${CMAKE_CURRENT_BINARY_DIR}/win_delay_load_hook.c @ONLY
+    )
+endif()
+
 # This is a find_package file, handle the standard invocation
 include(FindPackageHandleStandardArgs)
-set(NodeJS_TARGET "${NodeJS_PLATFORM}/${NodeJS_ARCH}")
+set(NodeJS_TARGET "${NodeJS_VARIANT_NAME} ${NodeJS_PLATFORM}/${NodeJS_ARCH}")
 find_package_handle_standard_args(NodeJS
     FOUND_VAR NodeJS_FOUND
     REQUIRED_VARS NodeJS_TARGET NodeJS_INCLUDE_DIRS NodeJS_NAN_PATH
@@ -372,6 +407,7 @@ mark_as_advanced(
     NodeJS_ARCH_X64
     NodeJS_ARCH_IA32
     NodeJS_ARCH_ARM
+    NodeJS_DEFAULT_VARIANT_NAME
     NodeJS_VARIANT_BASE
     NodeJS_VARIANT_NAME
     NodeJS_URL
@@ -380,9 +416,18 @@ mark_as_advanced(
     NodeJS_CHECKSUM_TYPE
     NodeJS_WIN32_LIBRARY_PATH
     NodeJS_WIN32_BINARY_PATH
-    NodeJS_INCLUDE_PATHS
     NodeJS_WIN32_LIBRARY_NAME
     NodeJS_WIN32_BINARY_NAME
+    NodeJS_DEFAULT_INCLUDE
+    NodeJS_DEFAULT_LIBS
+    NodeJS_HAS_WIN32_BINARY
+    NodeJS_HEADER_VERSION
+    NodeJS_SHA256_VERISON
+    NodeJS_PREFIX_VERSION
+    NodeJS_SOURCE_INCLUDE
+    NodeJS_HEADER_INCLUDE
+    NodeJS_INCLUDE_PATHS
+    NodeJS_WIN32_DELAYLOAD
     NodeJS_DOWNLOAD_PATH
     NodeJS_CHECKSUM_FILE
     NodeJS_CHECKSUM_DATA
@@ -396,5 +441,8 @@ mark_as_advanced(
     NodeJS_WIN32_BINARY_FILE
     NodeJS_WIN32_BINARY_CHECKSUM
     NodeJS_NAN_PATH
+    NodeJS_WIN32_DELAYLOAD_CONDITION
+    NodeJS_WIN32_DELAYLOAD_FLAGS
+    NodeJS_WIN32_DELAYLOAD_BINARY
     NodeJS_TARGET
 )
