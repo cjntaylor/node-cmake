@@ -1,0 +1,20 @@
+{
+  "eqeqeq": true,
+  "indent": 2,
+  "nonbsp": true,
+  "nonew": true,
+  "newcap": false,
+  "curly": false,
+  "quotmark": "single",
+  "undef": true,
+  "unused": true,
+  "white": true,
+  "strict": true,
+  "freeze": true,
+  "laxcomma": true,
+  "laxbreak": true,
+  "esnext": true,
+  "node": true,
+  "mocha": true,
+  "globals": {}
+}

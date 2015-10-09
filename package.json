@@ -11,7 +11,15 @@
   ],
   "license": "ISC",
   "main": "index.js",
+  "bin": {
+    "ncmake": "lib/ncmake.js"
+  },
   "dependencies": {
-    "nan": "*"
+    "lodash": "^3.10.1",
+    "mkdirp": "^0.5.1",
+    "mothership": "^0.3.0",
+    "nan": "*",
+    "rimraf": "^2.4.3",
+    "which": "^1.1.2"
   }
 }

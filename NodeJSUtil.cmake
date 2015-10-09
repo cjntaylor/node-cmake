@@ -34,6 +34,13 @@ function(nodejs_download URL FILE)
         SHOW_PROGRESS
     )
 
+    # Make sure the file has contents
+    file(READ ${FILE} FILE_CONTENT LIMIT 1 HEX)
+    if(NOT FILE_CONTENT)
+        file(REMOVE ${FILE})
+        message(FATAL_ERROR "Unable to download file ${URL}")
+    endif()
+
     # If a checksum is provided, validate the downloaded file
     if(CHECKSUM)
         message(STATUS "Validating: ${FILE}")

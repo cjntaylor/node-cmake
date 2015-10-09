@@ -3,6 +3,11 @@ if(CMAKE_MINIMUM_REQUIRED_VERSION VERSION_LESS 3.1.0)
     message(FATAL_ERROR "FindNodeJS.cmake uses CMake 3.1+ features")
 endif()
 
+# Force a build type to be set (ignored on config based generators)
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Debug CACHE STRING "Build type" FORCE)
+endif()
+
 # Capture module information
 set(NodeJS_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR})
 get_filename_component(NodeJS_MODULE_NAME ${NodeJS_MODULE_PATH} NAME)
@@ -40,6 +45,16 @@ if(NodeJS_EXECUTABLE)
         COMMAND ${NodeJS_EXECUTABLE} --version
         RESULT_VARIABLE NodeJS_VALIDATE_EXECUTABLE
         OUTPUT_VARIABLE NodeJS_INSTALLED_VERSION
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+    execute_process(
+        COMMAND ${NodeJS_EXECUTABLE} -p "process.platform"
+        OUTPUT_VARIABLE NodeJS_INSTALLED_PLATFORM
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+    execute_process(
+        COMMAND ${NodeJS_EXECUTABLE} -p "process.arch"
+        OUTPUT_VARIABLE NodeJS_INSTALLED_ARCH
         OUTPUT_STRIP_TRAILING_WHITESPACE
     )
 endif()
@@ -82,14 +97,16 @@ foreach(NodeJS_COMPONENT ${NodeJS_FIND_COMPONENTS})
 endforeach()
 
 # Get the targeted version of Node.js (or one of its derivatives)
-if(NodeJS_FIND_VERSION)
-    set(NodeJS_VERSION ${NodeJS_FIND_VERSION})
-elseif(NodeJS_INSTALLED_VERSION AND NOT NodeJS_COMPONENTS_CONTAINS_VARIANT)
-    string(SUBSTRING ${NodeJS_INSTALLED_VERSION} 1 -1 NodeJS_VERSION)
-else()
-    message(FATAL_ERROR "Node.js version is not set. Set the VERSION \
-    property of the find_package command to the required version of the \
-    Node.js sources")
+if(NOT NodeJS_VERSION)
+    if(NodeJS_FIND_VERSION)
+        set(NodeJS_VERSION ${NodeJS_FIND_VERSION})
+    elseif(NodeJS_INSTALLED_VERSION AND NOT NodeJS_COMPONENTS_CONTAINS_VARIANT)
+        string(SUBSTRING ${NodeJS_INSTALLED_VERSION} 1 -1 NodeJS_VERSION)
+    else()
+        message(FATAL_ERROR "Node.js version is not set. Set the VERSION \
+        property of the find_package command to the required version of the \
+        Node.js sources")
+    endif()
 endif()
 
 # Populate version variables, including version components
@@ -116,11 +133,7 @@ if(NOT NodeJS_PLATFORM)
     elseif(NodeJS_FIND_REQUIRED_DARWIN)
         set(NodeJS_PLATFORM "darwin")
     elseif(NodeJS_EXECUTABLE)
-        execute_process(
-            COMMAND ${NodeJS_EXECUTABLE} -p "process.platform"
-            OUTPUT_VARIABLE NodeJS_PLATFORM
-            OUTPUT_STRIP_TRAILING_WHITESPACE
-        )
+        set(NodeJS_PLATFORM ${NodeJS_INSTALLED_PLATFORM})
     elseif(WIN32)
         set(NodeJS_PLATFORM "win32")
     elseif(UNIX)
@@ -171,11 +184,7 @@ if(NOT NodeJS_ARCH)
         endif()
         set(NodeJS_ARCH "arm")
     elseif(NodeJS_EXECUTABLE)
-        execute_process(
-            COMMAND ${NodeJS_EXECUTABLE} -p "process.arch"
-            OUTPUT_VARIABLE NodeJS_ARCH
-            OUTPUT_STRIP_TRAILING_WHITESPACE
-        )
+        set(NodeJS_ARCH ${NodeJS_INSTALLED_ARCH})
     elseif(MSVC)
         if(CMAKE_CL_64)
             set(NodeJS_ARCH "x64")
@@ -220,9 +229,9 @@ set(NodeJS_SOURCE_PATH "")        # The URL path of the source archive
 set(NodeJS_CHECKSUM_PATH "")      # The URL path of the checksum file
 set(NodeJS_CHECKSUM_TYPE "")      # The checksum type (algorithm)
 set(NodeJS_WIN32_LIBRARY_PATH "") # The URL path of the windows library
+set(NodeJS_WIN32_BINARY_PATH "")  # The URL path of the windows executable
 set(NodeJS_WIN32_LIBRARY_NAME "") # The name of the windows library
-set(NodeJS_WIN32_BINARY_PATH "")  # The URL path of the windows executable (opt)
-set(NodeJS_WIN32_BINARY_NAME "")  # The name of the windows executable (opt)
+set(NodeJS_WIN32_BINARY_NAME "")  # The name of the windows executable
 
 set(NodeJS_DEFAULT_INCLUDE True)  # Enable default include behavior
 set(NodeJS_DEFAULT_LIBS True)     # Include the default libraries
@@ -230,6 +239,7 @@ set(NodeJS_HAS_WIN32_BINARY True) # Does the variant have win32 executables
 set(NodeJS_HEADER_VERSION 0.12.7) # Version after header-only archives start
 set(NodeJS_SHA256_VERSION 0.7.0)  # Version after sha256 checksums start
 set(NodeJS_PREFIX_VERSION 0.12.7) # Version after windows prefixing starts
+set(NodeJS_CXX11R_VERSION 0.12.7) # Version after c++11 is required
 set(NodeJS_SOURCE_INCLUDE True)   # Use the include paths from a source archive
 set(NodeJS_HEADER_INCLUDE False)  # Use the include paths from a header archive
 set(NodeJS_INCLUDE_PATHS "")      # Set of header dirs inside the source archive
@@ -249,7 +259,9 @@ include(NodeJS)
 # than the default
 if((NOT NodeJS_PLATFORM_WIN32) AND (NOT NodeJS_DOWNLOAD) AND
     NodeJS_VARIANT_NAME STREQUAL NodeJS_DEFAULT_VARIANT_NAME AND
-    NodeJS_INSTALLED_VERSION STREQUAL NodeJS_VERSION_STRING)
+    NodeJS_INSTALLED_VERSION STREQUAL NodeJS_VERSION_STRING AND
+    NodeJS_INSTALLED_PLATFORM STREQUAL NodeJS_PLATFORM AND
+    NodeJS_INSTALLED_ARCH STREQUAL NodeJS_ARCH)
     # node.h is really generic and too easy for cmake to find the wrong
     # file, so use the directory as a guard, and then just tack it on to
     # the actual path
@@ -358,20 +370,16 @@ else()
     endif()
 endif()
 
-# Find and include the Nan package
-nodejs_find_module_fallback(nan ${CMAKE_CURRENT_SOURCE_DIR} NodeJS_NAN_PATH)
-list(APPEND NodeJS_INCLUDE_DIRS ${NodeJS_NAN_PATH})
-
 # Support windows delay loading
 if(NodeJS_PLATFORM_WIN32)
+    list(APPEND NodeJS_LINK_FLAGS
+        /DELAYLOAD:${NodeJS_WIN32_BINARY_NAME}
+        /IGNORE:4199
+    )
     set(NodeJS_WIN32_DELAYLOAD_CONDITION "")
-    set(NodeJS_WIN32_DELAYLOAD_FLAGS "")
     foreach(NodeJS_WIN32_DELAYLOAD_BINARY ${NodeJS_WIN32_DELAYLOAD})
         list(APPEND NodeJS_WIN32_DELAYLOAD_CONDITION
             "_stricmp(info->szDll, \"${NodeJS_WIN32_DELAYLOAD_BINARY}\") != 0"
-        )
-        list(APPEND NodeJS_WIN32_DELAYLOAD_FLAGS 
-            "/DELAYLOAD:${NodeJS_WIN32_DELAYLOAD_BINARY}"
         )
     endforeach()
     string(REPLACE ";" " &&\n     " 
@@ -379,9 +387,105 @@ if(NodeJS_PLATFORM_WIN32)
         "${NodeJS_WIN32_DELAYLOAD_CONDITION}"
     )
     configure_file(
-        ${CMAKE_CURRENT_LIST_DIR}/src/win_delay_load_hook.c
+        ${NodeJS_MODULE_PATH}/src/win_delay_load_hook.c
         ${CMAKE_CURRENT_BINARY_DIR}/win_delay_load_hook.c @ONLY
     )
+    list(APPEND NodeJS_ADDITIONAL_SOURCES
+        ${CMAKE_CURRENT_BINARY_DIR}/win_delay_load_hook.c
+    )
+endif()
+
+# Allow undefined symbols on OSX
+if(NodeJS_PLATFORM_DARWIN)
+    list(APPEND NodeJS_LINK_FLAGS "-undefined dynamic_lookup")
+endif()
+
+# Use libc++ when clang is the compiler
+if(CMAKE_CXX_COMPILER_ID MATCHES ".*Clang.*")
+    list(APPEND NodeJS_COMPILE_OPTIONS -stdlib=libc++)
+endif()
+
+# Require c++11 support after a specific point, but only if the user hasn't
+# specified an override
+if(NOT NodeJS_CXX_STANDARD) 
+    if(NodeJS_VERSION VERSION_GREATER NodeJS_CXX11R_VERSION)
+        set(NodeJS_CXX_STANDARD 11)
+    else()
+        set(NodeJS_CXX_STANDARD 98)
+    endif()
+endif()
+
+# Set required definitions
+list(APPEND NodeJS_DEFINITIONS BUILDING_NODE_EXTENSION)
+if(NodeJS_PLATFORM_DARWIN)
+    list(APPEND NodeJS_DEFINITIONS _DARWIN_USE_64_BIT_INODE=1)
+endif()
+if(NOT NodeJS_PLATFORM_WIN32)
+    list(APPEND NodeJS_DEFINITIONS
+        _LARGEFILE_SOURCE
+        _FILE_OFFSET_BITS=64
+    )
+endif()
+
+function(add_nodejs_module NAME)
+    # Build a shared library for the module
+    add_library(${NAME} SHARED ${ARGN} ${NodeJS_ADDITIONAL_SOURCES})
+
+    # Include required headers
+    # Find and include Nan as well (always available as its a 
+    # dependency of this module)
+    nodejs_find_module_fallback(nan ${CMAKE_CURRENT_SOURCE_DIR} NAN_PATH)
+    target_include_directories(${NAME} 
+        PRIVATE ${NodeJS_INCLUDE_DIRS}
+        PRIVATE ${NAN_PATH}
+    )
+
+    # Set module properties
+    # This ensures proper naming of the module library across all platforms
+    get_target_property(COMPILE_OPTIONS ${NAME} COMPILE_OPTIONS)
+    if(NOT COMPILE_OPTIONS)
+        set(COMPILE_OPTIONS "")
+    endif()
+    set(COMPILE_OPTIONS ${COMPILE_OPTIONS} ${NodeJS_COMPILE_OPTIONS})
+    get_target_property(LINK_FLAGS ${NAME} LINK_FLAGS)
+    if(NOT LINK_FLAGS)
+        set(LINK_FLAGS "")
+    endif()
+    set(LINK_FLAGS "${LINK_FLAGS} ${NodeJS_LINK_FLAGS}")
+    set_target_properties(${NAME} PROPERTIES
+        PREFIX ""
+        SUFFIX ".node"
+        MACOSX_RPATH ON
+        POSITION_INDEPENDENT_CODE TRUE
+        COMPILE_OPTIONS "${COMPILE_OPTIONS}"
+        LINK_FLAGS "${LINK_FLAGS}"
+        CXX_STANDARD_REQUIRED TRUE
+        CXX_STANDARD ${NodeJS_CXX_STANDARD}
+    )
+
+    # Output the module in a per build type directory
+    # This makes builds consistent with visual studio and other generators
+    # that build by configuration
+    if(NOT CMAKE_CONFIGURATION_TYPES)
+        set_property(TARGET ${NAME} PROPERTY LIBRARY_OUTPUT_DIRECTORY
+            ${CMAKE_BUILD_TYPE}
+        )
+    endif()
+
+    target_compile_definitions(${NAME} PRIVATE ${NodeJS_DEFINITIONS})
+endfunction()
+
+# Write out the configuration for node scripts
+configure_file(
+    ${NodeJS_MODULE_PATH}/build.json.in
+    ${CMAKE_CURRENT_BINARY_DIR}/build.json @ONLY
+)
+
+# Make sure we haven't violated the version-to-standard mapping
+if(NodeJS_VERSION VERSION_GREATER NodeJS_CXX11R_VERSION AND
+    NodeJS_CXX_STANDARD EQUAL 98)
+    message(FATAL_ERROR "${NodeJS_VARIANT_NAME} ${NodeJS_VERSION} \
+    requires C++11 or newer to build")
 endif()
 
 # This is a find_package file, handle the standard invocation
@@ -389,16 +493,22 @@ include(FindPackageHandleStandardArgs)
 set(NodeJS_TARGET "${NodeJS_VARIANT_NAME} ${NodeJS_PLATFORM}/${NodeJS_ARCH}")
 find_package_handle_standard_args(NodeJS
     FOUND_VAR NodeJS_FOUND
-    REQUIRED_VARS NodeJS_TARGET NodeJS_INCLUDE_DIRS NodeJS_NAN_PATH
+    REQUIRED_VARS NodeJS_TARGET NodeJS_INCLUDE_DIRS
     VERSION_VAR NodeJS_VERSION
 )
 
+# Mark variables that users shouldn't modify
 mark_as_advanced(
     NodeJS_VALIDATE_EXECUTABLE
     NodeJS_OTHER_COMPONENTS
     NodeJS_COMPONENTS_CONTAINS_VARIANT
     NodeJS_COMPONENT
     NodeJS_OTHER_INDEX
+    NodeJS_VERSION_STRING
+    NodeJS_VERSION_MAJOR
+    NodeJS_VERSION_MINOR
+    NodeJS_VERSION_PATCH
+    NodeJS_VERSION_TWEAK
     NodeJS_PLATFORM
     NodeJS_PLATFORM_WIN32
     NodeJS_PLATFORM_LINUX
@@ -441,8 +551,10 @@ mark_as_advanced(
     NodeJS_WIN32_BINARY_FILE
     NodeJS_WIN32_BINARY_CHECKSUM
     NodeJS_NAN_PATH
+    NodeJS_LINK_FLAGS
+    NodeJS_COMPILE_OPTIONS
+    NodeJS_ADDITIONAL_SOURCES
     NodeJS_WIN32_DELAYLOAD_CONDITION
-    NodeJS_WIN32_DELAYLOAD_FLAGS
     NodeJS_WIN32_DELAYLOAD_BINARY
     NodeJS_TARGET
 )
