@@ -1,3 +1,17 @@
+function(nodejs_check_file FILE)
+    set(MESSAGE "File ${FILE} does not exist or is empty")
+    if(ARGC GREATER 1)
+        set(MESSAGE ${ARGV1})
+    endif()
+
+    # Make sure the file has contents
+    file(READ ${FILE} FILE_CONTENT LIMIT 1 HEX)
+    if(NOT FILE_CONTENT)
+        file(REMOVE ${FILE})
+        message(FATAL_ERROR ${MESSAGE})
+    endif()
+endfunction()
+
 function(nodejs_download URL FILE)
     # Function optionally takes a checksum and a checksum type, and
     # a force value
@@ -35,11 +49,7 @@ function(nodejs_download URL FILE)
     )
 
     # Make sure the file has contents
-    file(READ ${FILE} FILE_CONTENT LIMIT 1 HEX)
-    if(NOT FILE_CONTENT)
-        file(REMOVE ${FILE})
-        message(FATAL_ERROR "Unable to download file ${URL}")
-    endif()
+    nodejs_check_file(${FILE} "Unable to download ${URL}")
 
     # If a checksum is provided, validate the downloaded file
     if(CHECKSUM)
@@ -137,3 +147,20 @@ macro(nodejs_find_module_fallback NAME BASE PATH)
         nodejs_find_module(${NAME} ${NodeJS_MODULE_PATH} ${PATH})
     endif()
 endmacro()
+
+function(nodejs_get_version URL VAR)
+    set(NWJS_LATEST_RELEASE_URL 
+        "${NWJS_URL_BASE}/latest/${NodeJS_CHECKSUM_PATH}")
+    set(VERSION_FILE ${CMAKE_CURRENT_BINARY_DIR}/VERSION)
+    nodejs_download(
+        ${URL}
+        ${VERSION_FILE}
+        ON
+    )
+    nodejs_check_file(${VERSION_FILE})
+    file(READ ${VERSION_FILE} VERSION_DATA)
+    string(REGEX MATCH "v([0-9]+\.[0-9]+\.[0-9]+)" 
+        VERSION_MATCH ${VERSION_DATA}
+    )
+    set(${VAR} ${CMAKE_MATCH_1} PARENT_SCOPE)
+endfunction()

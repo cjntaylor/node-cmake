@@ -109,13 +109,6 @@ if(NOT NodeJS_VERSION)
     endif()
 endif()
 
-# Populate version variables, including version components
-set(NodeJS_VERSION_STRING "v${NodeJS_VERSION}")
-string(REPLACE "." ";" NodeJS_VERSION_PARTS ${NodeJS_VERSION})
-list(GET NodeJS_VERSION_PARTS 0 NodeJS_VERSION_MAJOR)
-list(GET NodeJS_VERSION_PARTS 1 NodeJS_VERSION_MINOR)
-list(GET NodeJS_VERSION_PARTS 2 NodeJS_VERSION_PATCH)
-
 # Determine the target platform for the compiled module
 # Uses several mechanisms in order:
 # 
@@ -213,7 +206,7 @@ elseif(NodeJS_ARCH STREQUAL "arm")
     set(NodeJS_ARCH_ARM True)
 endif()
 
-#Include helper functions
+# Include helper functions
 include(NodeJSUtil)
 
 # Default variant name
@@ -235,7 +228,9 @@ set(NodeJS_WIN32_BINARY_NAME "")  # The name of the windows executable
 
 set(NodeJS_DEFAULT_INCLUDE True)  # Enable default include behavior
 set(NodeJS_DEFAULT_LIBS True)     # Include the default libraries
+set(NodeJS_HAS_WIN32_PREFIX True) # Does the variant use library prefixes
 set(NodeJS_HAS_WIN32_BINARY True) # Does the variant have win32 executables
+set(NodeJS_HAS_OPENSSL True)      # Does the variant include openssl headers
 set(NodeJS_HEADER_VERSION 0.12.7) # Version after header-only archives start
 set(NodeJS_SHA256_VERSION 0.7.0)  # Version after sha256 checksums start
 set(NodeJS_PREFIX_VERSION 0.12.7) # Version after windows prefixing starts
@@ -249,8 +244,29 @@ set(NodeJS_WIN32_DELAYLOAD "")    # Set of executables to delayload on windows
 # NodeJS variants
 # Selects download target based on configured component
 # Include NodeJS last to provide default configurations when omitted
-include(IOJS)
-include(NodeJS)
+file(
+    GLOB NodeJS_SUPPORTED_VARIANTS
+    RELATIVE ${CMAKE_CURRENT_LIST_DIR}/variants
+    ${CMAKE_CURRENT_LIST_DIR}/variants/*
+)
+foreach(NodeJS_SUPPORTED_VARIANT ${NodeJS_SUPPORTED_VARIANTS})
+    get_filename_component(NodeJS_SUPPORTED_VARIANT_NAME
+        ${NodeJS_SUPPORTED_VARIANT} NAME_WE
+    )
+    if(NOT NodeJS_SUPPORTED_VARIANT_NAME STREQUAL "NodeJS")
+        include(variants/${NodeJS_SUPPORTED_VARIANT_NAME})
+    endif()
+endforeach()
+include(variants/NodeJS)
+
+# Populate version variables, including version components
+set(NodeJS_VERSION_STRING "v${NodeJS_VERSION}")
+
+# Populate the remaining version variables
+string(REPLACE "." ";" NodeJS_VERSION_PARTS ${NodeJS_VERSION})
+list(GET NodeJS_VERSION_PARTS 0 NodeJS_VERSION_MAJOR)
+list(GET NodeJS_VERSION_PARTS 1 NodeJS_VERSION_MINOR)
+list(GET NodeJS_VERSION_PARTS 2 NodeJS_VERSION_PATCH)
 
 # If the version we're looking for is the version that is installed,
 # try finding the required headers. Don't do this under windows (where
@@ -297,7 +313,7 @@ else()
     file(READ ${NodeJS_CHECKSUM_FILE} NodeJS_CHECKSUM_DATA)
 
     # Download and extract the main source archive
-    set(NodeJS_SOURCE_FILE ${NodeJS_DOWNLOAD_PATH}/sources.tar.gz)
+    set(NodeJS_SOURCE_FILE ${NodeJS_DOWNLOAD_PATH}/headers.tar.gz)
     nodejs_checksum(
         ${NodeJS_CHECKSUM_DATA} ${NodeJS_SOURCE_PATH} NodeJS_SOURCE_CHECKSUM
     )
