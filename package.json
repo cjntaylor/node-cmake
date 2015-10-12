@@ -14,6 +14,9 @@
   "bin": {
     "ncmake": "lib/ncmake.js"
   },
+  "directories": {
+    "example": "example"
+  },
   "dependencies": {
     "lodash": "^3.10.1",
     "mkdirp": "^0.5.1",
@@ -21,9 +24,6 @@
     "nan": "*",
     "rimraf": "^2.4.3",
     "which": "^1.1.2"
-  },
-  "directories": {
-    "example": "example"
   },
   "devDependencies": {},
   "repository": {
