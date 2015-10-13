@@ -113,19 +113,12 @@ endif()
 # Uses several mechanisms in order:
 # 
 # 1. CMake cache (allows overriding on the command line)
-# 2. Component specification (set when calling find_package)
-# 3. Node architecture when binary is available
-# 4. CMake architecture
+# 2. Node architecture when binary is available
+# 3. CMake architecture
 # 
 set(NodeJS_PLATFORM "" CACHE STRING "Target node.js platform for module")
 if(NOT NodeJS_PLATFORM)
-    if(NodeJS_FIND_REQUIRED_WIN32)
-        set(NodeJS_PLATFORM "win32")
-    elseif(NodeJS_FIND_REQUIRED_LINUX)
-        set(NodeJS_PLATFORM "linux")
-    elseif(NodeJS_FIND_REQUIRED_DARWIN)
-        set(NodeJS_PLATFORM "darwin")
-    elseif(NodeJS_EXECUTABLE)
+    if(NodeJS_EXECUTABLE)
         set(NodeJS_PLATFORM ${NodeJS_INSTALLED_PLATFORM})
     elseif(WIN32)
         set(NodeJS_PLATFORM "win32")
@@ -161,22 +154,12 @@ endif()
 # Uses several mechanisms in order:
 # 
 # 1. CMake cache (allows overriding on the command line)
-# 2. Component specification (set when calling find_package)
-# 3. Node architecture when binary is available
-# 4. Compiler architecture under MSVC
+# 2. Node architecture when binary is available
+# 3. Compiler architecture under MSVC
 # 
 set(NodeJS_ARCH "" CACHE STRING "Target node.js architecture for module")
 if(NOT NodeJS_ARCH)
-    if(NodeJS_FIND_REQUIRED_X64)
-        set(NodeJS_ARCH "x64")
-    elseif(NodeJS_FIND_REQUIRED_IA32)
-        set(NodeJS_ARCH "ia32")
-    elseif(NodeJS_FIND_REQUIRED_ARM)
-        if(NodeJS_PLATFORM_WIN32)
-            message(FATAL_ERROR "ARM is not supported under windows")
-        endif()
-        set(NodeJS_ARCH "arm")
-    elseif(NodeJS_EXECUTABLE)
+    if(NodeJS_EXECUTABLE)
         set(NodeJS_ARCH ${NodeJS_INSTALLED_ARCH})
     elseif(MSVC)
         if(CMAKE_CL_64)
@@ -388,12 +371,12 @@ endif()
 
 # Support windows delay loading
 if(NodeJS_PLATFORM_WIN32)
-    list(APPEND NodeJS_LINK_FLAGS
-        /DELAYLOAD:${NodeJS_WIN32_BINARY_NAME}
-        /IGNORE:4199
-    )
+    list(APPEND NodeJS_LINK_FLAGS /IGNORE:4199)
     set(NodeJS_WIN32_DELAYLOAD_CONDITION "")
     foreach(NodeJS_WIN32_DELAYLOAD_BINARY ${NodeJS_WIN32_DELAYLOAD})
+        list(APPEND NodeJS_LINK_FLAGS
+            /DELAYLOAD:${NodeJS_WIN32_DELAYLOAD_BINARY}
+        )
         list(APPEND NodeJS_WIN32_DELAYLOAD_CONDITION
             "_stricmp(info->szDll, \"${NodeJS_WIN32_DELAYLOAD_BINARY}\") != 0"
         )
@@ -452,8 +435,8 @@ function(add_nodejs_module NAME)
     # dependency of this module)
     nodejs_find_module_fallback(nan ${CMAKE_CURRENT_SOURCE_DIR} NAN_PATH)
     target_include_directories(${NAME} 
-        PRIVATE ${NodeJS_INCLUDE_DIRS}
-        PRIVATE ${NAN_PATH}
+        PUBLIC ${NodeJS_INCLUDE_DIRS}
+        PUBLIC ${NAN_PATH}
     )
 
     # Set module properties
