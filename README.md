@@ -51,7 +51,7 @@ turing complete syntax for describing the build process in general terms,
 and converting that syntax to the correct build instructions.
 
 CMake has long been a counter-argument and 
-[competitor](https://chromium.googlesource.com/external/gyp/+/master/docs/GypVsCMake.md) 
+[competitor](https://gyp.gsrc.io/docs/GypVsCMake.md) 
 to gyp. While the arguments outlined there are well reasoned, there are many
 arguments as to why CMake is good build system for cross platform builds:
 
@@ -136,7 +136,7 @@ the `add_executable` and `add_library` commands native to CMake. This command
 ensures that the built shared library uses the correct build settings and 
 flags on each platform. It creates a shared library `target`, specified by the
 first argument, that can be used identically to any other CMake `target`. In
-the example above, the target will be called '\<NAME OF PROJECT\>' 
+the example above, the target will be called '\<NAME OF MODULE\>' 
 
 CMake has extensive documentation online, which can be
 found [here](https://cmake.org/documentation) for various versions of CMake.
@@ -335,8 +335,10 @@ builds strictly in CMake. Generally, this functionality should not be used,
 relying on `ncmake` to build via npm.
 
 The NodeJS find_package command uses the VERSION and COMPONENTS arguments
-to support build-defined versions and variants. Specify the version
-immediately after `NodeJS` to hard-code a version requirement:
+to support build-defined versions and variants. 
+
+Specify the version immediately after `NodeJS` to hard-code a version 
+requirement:
 
 ```CMake
 find_package(NodeJS 0.12.7)
