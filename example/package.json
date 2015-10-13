@@ -1,0 +1,20 @@
+{
+  "name": "addon",
+  "version": "1.0.0",
+  "description": "Node.js example native module",
+  "keywords": [
+    "addon",
+    "native",
+    "module"
+  ],
+  "author": "Node.js Foundation",
+  "license": "ISC",
+  "main": "index.js",
+  "scripts": {
+    "install": "ncmake --build"
+  },
+  "repository": {},
+  "devDependencies": {
+    "node-cmake": "^1.0.0"
+  }
+}
