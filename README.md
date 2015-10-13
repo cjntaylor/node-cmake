@@ -97,7 +97,7 @@ as a development dependency:
     npm install --save-dev node-cmake
 
 Then add a `CMakeLists.txt` file to the root of your module that contains
-the following at a minimum (Replace <> sections with your own text):
+the following at a minimum (\<REPLACE\> with your own definitions):
 
 ```CMake
 cmake_minimum_required(VERSION 3.1)
@@ -136,7 +136,7 @@ the `add_executable` and `add_library` commands native to CMake. This command
 ensures that the built shared library uses the correct build settings and 
 flags on each platform. It creates a shared library `target`, specified by the
 first argument, that can be used identically to any other CMake `target`. In
-the example above, the target will be called '<NAME OF PROJECT>' 
+the example above, the target will be called '\<NAME OF PROJECT\>' 
 
 CMake has extensive documentation online, which can be
 found [here](https://cmake.org/documentation) for various versions of CMake.
