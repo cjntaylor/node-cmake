@@ -48,7 +48,7 @@ built on top of [CMake](https://cmake.org). CMake, like gyp, is a meta-build
 system, generating build files for the actual build tools and
 IDEs on each platform. It does this by using its own platform agnostic and
 turing complete syntax for describing the build process in general terms,
-and converting that syntax to the correct build instructions on each platform.
+and converting that syntax to the correct build instructions.
 
 CMake has long been a counter-argument and 
 [competitor](https://chromium.googlesource.com/external/gyp/+/master/docs/GypVsCMake.md) 
@@ -141,6 +141,25 @@ the example above, the target will be called '<NAME OF PROJECT>'
 CMake has extensive documentation online, which can be
 found [here](https://cmake.org/documentation) for various versions of CMake.
 node-cmake REQUIRES CMake >= 3.1, but any newer version is also supported.
+
+## Nan Support
+
+To simplify building of cross-version node modules, 
+[Nan](https://github.com/nodejs/nan) is always included as a project 
+dependency. In your module native sources, just
+
+```C++
+#include <nan.h>
+```
+
+At the top of any header/source file that requires this functionality.
+The version included with node-cmake will always be the newest available
+version of Nan. To use your own version, specify it as a dependency of your
+module:
+
+    npm install --save-dev nan
+
+This version will be used instead of the dependency specified by node-cmake.
 
 ## Building
 
