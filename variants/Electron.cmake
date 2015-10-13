@@ -2,10 +2,10 @@ set(ELECTRON_VARIANT_BASE "electron")
 set(ELECTRON_WIN32_BINARY_NAME "${ELECTRON_VARIANT_BASE}.exe")
 list(APPEND NodeJS_WIN32_DELAYLOAD ${ELECTRON_WIN32_BINARY_NAME})
 
-if(NodeJS_FIND_REQUIRED_IOJS OR 
+if(NodeJS_FIND_REQUIRED_ELECTRON OR 
    NodeJS_VARIANT STREQUAL ${ELECTRON_VARIANT_BASE})
     if(NodeJS_VERSION STREQUAL "latest")
-        include(Github)
+        include(util/Github)
         github_get_rate_limit(GITHUB_RATE_LIMIT)
 
         # Handle determining the latest release

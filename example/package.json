@@ -12,5 +12,9 @@
   "main": "index.js",
   "scripts": {
     "install": "ncmake --build"
+  },
+  "repository": {},
+  "devDependencies": {
+    "node-cmake": "^1.0.0"
   }
 }

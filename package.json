@@ -1,7 +1,7 @@
 {
   "name": "node-cmake",
   "author": "Colin Taylor <cjntaylor@gmail.com>",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "A CMake-based build system for node.js native modules",
   "keywords": [
     "cmake",
@@ -14,6 +14,9 @@
   "bin": {
     "ncmake": "lib/ncmake.js"
   },
+  "directories": {
+    "example": "example"
+  },
   "dependencies": {
     "lodash": "^3.10.1",
     "mkdirp": "^0.5.1",
@@ -21,5 +24,14 @@
     "nan": "*",
     "rimraf": "^2.4.3",
     "which": "^1.1.2"
-  }
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cjntaylor/node-cmake.git"
+  },
+  "bugs": {
+    "url": "https://github.com/cjntaylor/node-cmake/issues"
+  },
+  "homepage": "https://github.com/cjntaylor/node-cmake#readme"
 }

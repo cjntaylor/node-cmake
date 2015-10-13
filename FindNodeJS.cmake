@@ -207,7 +207,7 @@ elseif(NodeJS_ARCH STREQUAL "arm")
 endif()
 
 # Include helper functions
-include(NodeJSUtil)
+include(util/NodeJSUtil)
 
 # Default variant name
 # Used by the installed header comparison below
