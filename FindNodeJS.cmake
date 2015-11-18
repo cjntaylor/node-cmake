@@ -450,7 +450,9 @@ function(add_nodejs_module NAME)
     if(NOT LINK_FLAGS)
         set(LINK_FLAGS "")
     endif()
-    set(LINK_FLAGS "${LINK_FLAGS} ${NodeJS_LINK_FLAGS}")
+    foreach(NodeJS_LINK_FLAG ${NodeJS_LINK_FLAGS})
+        set(LINK_FLAGS "${LINK_FLAGS} ${NodeJS_LINK_FLAG}")
+    endforeach()
     set_target_properties(${NAME} PROPERTIES
         PREFIX ""
         SUFFIX ".node"
