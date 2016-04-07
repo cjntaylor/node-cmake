@@ -25,6 +25,12 @@ option(NodeJS_FORCE_DOWNLOAD "Download the source files every time" Off)
 # Allow users to force archive extraction
 option(NodeJS_FORCE_EXTRACT "Extract the archive every time" Off)
 
+# Make libc++ the default when compiling with clang
+option(NodeJS_USE_CLANG_STDLIB "Use libc++ when compiling with clang" On)
+if(APPLE)
+    set(NodeJS_USE_CLANG_STDLIB On CACHE BOOL "" FORCE)
+endif()
+
 if(WIN32)
     # Allow users to specify that the executable should be downloaded
     option(NodeJS_DOWNLOAD_EXECUTABLE
@@ -399,8 +405,8 @@ if(NodeJS_PLATFORM_DARWIN)
     list(APPEND NodeJS_LINK_FLAGS "-undefined dynamic_lookup")
 endif()
 
-# Use libc++ when clang is the compiler
-if(CMAKE_CXX_COMPILER_ID MATCHES ".*Clang.*")
+# Use libc++ when clang is the compiler by default
+if(NodeJS_USE_CLANG_STDLIB AND CMAKE_CXX_COMPILER_ID MATCHES ".*Clang.*")
     list(APPEND NodeJS_COMPILE_OPTIONS -stdlib=libc++)
 endif()
 
@@ -473,7 +479,12 @@ function(add_nodejs_module NAME)
         )
     endif()
 
+    # Set any required complier flags
+    # Mostly used under windows
     target_compile_definitions(${NAME} PRIVATE ${NodeJS_DEFINITIONS})
+
+    # Link against required NodeJS libraries
+    target_link_libraries(${NAME} ${NodeJS_LIBRARIES})
 endfunction()
 
 # Write out the configuration for node scripts
