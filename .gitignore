@@ -4,3 +4,6 @@ node_modules/
 # Build directories - out is the default
 out/
 build/
+
+# IDE files
+/.idea
