@@ -9,6 +9,7 @@
 
 #ifdef _MSC_VER
 
+#define DELAYIMP_INSECURE_WRITABLE_HOOKS
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
