@@ -42,11 +42,19 @@ function(nodejs_download URL FILE)
 
     # Download the file
     message(STATUS "Downloading: ${URL}")
-    file(DOWNLOAD 
+    file(DOWNLOAD
         ${URL}
-        ${FILE}
+        ${FILE}.tmp
         SHOW_PROGRESS
+        STATUS RESULT
     )
+    list(GET RESULT 0 STATUS)
+    if(STATUS)
+        list(GET result 1 MESSAGE)
+        message(FATAL_ERROR "Unable to download ${URL}: ${MESSAGE}")
+    else()
+        file(RENAME ${FILE}.tmp ${FILE})
+    endif()
 
     # Make sure the file has contents
     nodejs_check_file(${FILE} "Unable to download ${URL}")
