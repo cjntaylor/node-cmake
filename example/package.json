@@ -15,6 +15,6 @@
   },
   "repository": {},
   "devDependencies": {
-    "node-cmake": "^2.0.0"
+    "node-cmake": "2.x"
   }
 }

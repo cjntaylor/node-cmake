@@ -15,7 +15,7 @@ Newly rewritten for 2.0!
 
 ##### Removed Features
 
-* `find_package` support. The module loading technique used in 1.0 was flawed for specific module structures and setup (deeply nested native dependencies). The new technique is to copy the now single configuration script into your project. This means that projects will not stay in sync with updates automatically. Be sure to copy the script again when updating `node-cmake` to a new version.
+* `find_package` support. The module loading technique used in 1.0 was flawed for specific module structures and setup (deeply nested native dependencies). The new technique is to run `ncmake update` to copy the configuration script into your project. This means that projects will not stay in sync with updates automatically. Be sure to run `ncmake update` when updating `node-cmake` to a new version.
 * `ncmake` command line arguments. `ncmake` now follows and extends the `node-gyp` command line interface. Please update your build files to use the new syntax (`ncmake --build` => `ncmake rebuild`). For more info, see the [manual](docs/NcmakeManual.md).
 * Support for NW.js - The NW.js release server is not compliant to the Node.js release server structure. Workaround for the NW.js naming conventions have been included in the update, but the server SHA file does not include checksums for all resources, leaving no way to validate downloads. The SHASUMS256.txt file on the server needs to be updated to include these entries to be used with this tool.
 
@@ -25,7 +25,7 @@ To use this package, add the module `node-cmake` to your package.json as a devel
 
     npm install --save-dev node-cmake
 
-Copy the file `NodeJS.cmake` from this module into your project. Then add a `CMakeLists.txt` file to the root of your module that contains at least the following (\<REPLACE\> with your own definitions):
+Run `ncmake update` to copy the file `NodeJS.cmake` from this module into your project. Then add a `CMakeLists.txt` file to the root of your module that contains at least the following (\<REPLACE\> with your own definitions):
 
 ```CMake
 cmake_minimum_required(VERSION 3.1)

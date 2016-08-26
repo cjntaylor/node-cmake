@@ -12,6 +12,7 @@ Only a single command is interpreted. Options should precede the command but can
 | `distclean`   | Removes all build files
 | `configure`   | Runs CMake to generate the project configuration
 | `rebuild`     | Runs clean, configure and build
+| `update`      | Copies the NodeJS.cmake from the installed module
 | `install`     | Deprecated `node-gyp` command (no-op)
 | `list`        | Deprecated `node-gyp` command (no-op)
 | `remove`      | Deprecated `node-gyp` command (no-op)
