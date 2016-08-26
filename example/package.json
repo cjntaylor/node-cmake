@@ -11,10 +11,10 @@
   "license": "ISC",
   "main": "index.js",
   "scripts": {
-    "install": "ncmake --build"
+    "install": "ncmake rebuild"
   },
   "repository": {},
   "devDependencies": {
-    "node-cmake": "^1.0.0"
+    "node-cmake": "^2.0.0"
   }
 }
