@@ -2,7 +2,7 @@
 
 Usage: `ncmake [options] <command>`
 
-Only a single command is interpreted. Options should preceed the command but can occur in any order.
+Only a single command is interpreted. Options should precede the command but can occur in any order.
 
 | **Command**   | **Description**
 |:--------------|:--------------------------------------------------------
@@ -69,4 +69,4 @@ Build the module in debug mode
 
     ncmake --target v6.2.1 rebuild
 
-Build a module targeting `v6.2.1` of node.js
+Build a module targeting `v6.2.1` of Node.js

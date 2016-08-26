@@ -39,7 +39,7 @@ Sets the following variables:
 * **NODEJS_VERSION** - The resolved version of Node.js to use
 * **NODEJS_SOURCES** - A list of required sources to link into native modules
 * **NODEJS_INCLUDE_DIRS** - The set of include directories for native modules
-* **NODEJS_LIBRARIES** - The set of depenencies required for native modules
+* **NODEJS_LIBRARIES** - The set of dependencies required for native modules
 * **NODEJS_LINK_FLAGS** - Link flags to set when building modules
 * **NODEJS_DEFINITIONS** - Compile definitions to set when building modules
 
