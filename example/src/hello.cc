@@ -11,6 +11,6 @@ NAN_MODULE_INIT(init) {
     NAN_EXPORT(target, hello);
 }
 
-NODE_MODULE(addon, init)
+NODE_MODULE(MODULE_NAME, init)
 
 }  // namespace demo

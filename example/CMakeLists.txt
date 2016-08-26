@@ -1,11 +1,8 @@
 cmake_minimum_required(VERSION 3.1)
 
-project(addon)
+project(example VERSION 1.0.0)
 
-list(APPEND CMAKE_MODULE_PATH 
-    ${CMAKE_CURRENT_SOURCE_DIR}/node_modules/node-cmake
-)
-
-find_package(NodeJS)
+include(../NodeJS.cmake)
+nodejs_init()
 
 add_nodejs_module(${PROJECT_NAME} src/hello.cc)

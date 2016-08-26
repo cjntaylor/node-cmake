@@ -1,24 +1,14 @@
 Native Addon
 ============
 
-The native addon, adjusted to use Nan for cross-variant compatibility, 
-from the node.js documentation site for 
-[Addons](https://nodejs.org/api/addons.html).
+An example native addon, adjusted to use Nan for cross-variant compatibility, 
+from the Node.js documentation site for [Addons](https://nodejs.org/api/addons.html).
 
 ## Development Setup
 
-This module requires node-cmake and is a part of node-cmake's distribution.
-Now that node-cmake is published to npm, it is no longer necessary to
-use `npm link` as the dependency can be directly downloaded.
-
-However, this is the best way to test development changes to the project. 
-From the root of this project run:
-
-    npm link
-
-Then, in this folder, run:
-
-    npm link node-cmake
+This module requires node-cmake and is a part of node-cmake's distribution. A normal
+project should copy NodeJS.cmake to their own project; this just refers to its
+location in this project, one directory above.
 
 ## Building
 
