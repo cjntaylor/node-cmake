@@ -499,10 +499,10 @@ function(nodejs_init)
         
         # Necessary flags to get delayload working correctly
         list(APPEND LINK_FLAGS 
-            "/IGNORE:4199"
-            "/DELAYLOAD:iojs.exe"
-            "/DELAYLOAD:node.exe"
-            "/DELAYLOAD:node.dll"
+            "-IGNORE:4199"
+            "-DELAYLOAD:iojs.exe"
+            "-DELAYLOAD:node.exe"
+            "-DELAYLOAD:node.dll"
         )
 
         # Core system libraries used by node
@@ -579,7 +579,7 @@ function(add_nodejs_module NAME)
     # This properly defines includes for the module
     target_include_directories(${NAME} PUBLIC ${NODEJS_INCLUDE_DIRS})
 
-    # Add link flags to the module (TODO: Needs testing under windows)
+    # Add link flags to the module
     target_link_libraries(${NAME} ${NODEJS_LINK_FLAGS})
 
     # Set required properties for the module to build properly
