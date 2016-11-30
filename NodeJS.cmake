@@ -580,7 +580,7 @@ function(add_nodejs_module NAME)
     target_include_directories(${NAME} PUBLIC ${NODEJS_INCLUDE_DIRS})
 
     # Add link flags to the module
-    target_link_libraries(${NAME} ${NODEJS_LINK_FLAGS})
+    target_link_libraries(${NAME} ${NODEJS_LIBRARIES} ${NODEJS_LINK_FLAGS})
 
     # Set required properties for the module to build properly
     # Correct naming, symbol visiblity and C++ standard
