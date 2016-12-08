@@ -133,11 +133,11 @@ function(nodejs_init)
     set(LIB64_MATCH "(^[0-9A-Fa-f]+)[\t ]+(win-)?(x64/)(.*)(.lib)$")
 
     # Parse function arguments
-    cmake_parse_arguments(nodejs_init 
+    cmake_parse_arguments(nodejs_init
         "" "URL;NAME;VERSION;CHECKSUM;CHECKTYPE" "" ${ARGN}
     )
 
-    # Allow the download URL to be overridden by command line argument 
+    # Allow the download URL to be overridden by command line argument
     # NODEJS_URL
     if(NODEJS_URL)
         set(URL ${NODEJS_URL})
@@ -201,7 +201,7 @@ function(nodejs_init)
     set(NODEJS_INSTALLED False CACHE BOOL "Node.js install status" FORCE)
     if(VERSION STREQUAL "installed")
         if(NOT NAME STREQUAL ${NODEJS_DEFAULT_NAME})
-            message(FATAL_ERROR 
+            message(FATAL_ERROR
                 "'Installed' version identifier can only be used with"
                 "the core Node.js library"
             )
@@ -217,7 +217,7 @@ function(nodejs_init)
                 OUTPUT_STRIP_TRAILING_WHITESPACE
             )
             if(INSTALLED_VERSION_RESULT STREQUAL "0")
-                set(NODEJS_INSTALLED True CACHE BOOL 
+                set(NODEJS_INSTALLED True CACHE BOOL
                     "Node.js install status" FORCE
                 )
                 set(VERSION ${INSTALLED_VERSION})
@@ -239,7 +239,7 @@ function(nodejs_init)
 
     # If we're trying to determine the version or we haven't saved the
     # checksum file for this version, download it from the specified server
-    if(VERSION STREQUAL "latest" OR 
+    if(VERSION STREQUAL "latest" OR
       (DEFINED ROOT AND NOT EXISTS ${ROOT}/CHECKSUM))
         if(DEFINED ROOT)
             # Clear away the old checksum in case the new one is different
@@ -256,7 +256,7 @@ function(nodejs_init)
         list(GET CHECKSUM_STATUS 0 CHECKSUM_STATUS)
         if(CHECKSUM_STATUS GREATER 0)
             file(REMOVE ${TEMP}/CHECKSUM)
-            message(FATAL_ERROR 
+            message(FATAL_ERROR
                 "Unable to download checksum file"
             )
         endif()
@@ -287,7 +287,7 @@ function(nodejs_init)
     else()
         set(VERSION ${CMAKE_MATCH_3})
     endif()
-    set(HEADERS_ARCHIVE 
+    set(HEADERS_ARCHIVE
         ${CMAKE_MATCH_2}-${CMAKE_MATCH_3}-${CMAKE_MATCH_4}${CMAKE_MATCH_5}
     )
     # Make sure that the root directory exists, and that the checksum
@@ -306,7 +306,7 @@ function(nodejs_init)
         file(REMOVE ${ROOT}/CHECKSUM)
         file(RENAME ${TEMP}/CHECKSUM ${ROOT}/CHECKSUM)
     endif()
-    
+
     # Now that its fully resolved, report the name and version of Node.js being
     # used
     message(STATUS "NodeJS: Using ${NAME}, version ${VERSION}")
@@ -423,14 +423,14 @@ function(nodejs_init)
             )
             list(GET LIB32_STATUS 0 LIB32_STATUS)
             if(LIB32_STATUS GREATER 0)
-                message(FATAL_ERROR 
+                message(FATAL_ERROR
                     "Unable to download Node.js windows library (32-bit)"
                 )
             endif()
             file(REMOVE_RECURSE ${ROOT}/${LIB32_PATH})
             file(MAKE_DIRECTORY ${ROOT}/${LIB32_PATH})
-            file(RENAME 
-                ${TEMP}/${LIB32_PATH}/${LIB32_NAME} 
+            file(RENAME
+                ${TEMP}/${LIB32_PATH}/${LIB32_NAME}
                 ${ROOT}/${LIB32_PATH}/${LIB32_NAME}
             )
             file(REMOVE_RECURSE ${TEMP}/${LIB32_PATH})
@@ -461,14 +461,14 @@ function(nodejs_init)
             )
             list(GET LIB64_STATUS 0 LIB64_STATUS)
             if(LIB64_STATUS GREATER 0)
-                message(FATAL_ERROR 
+                message(FATAL_ERROR
                     "Unable to download Node.js windows library (64-bit)"
                 )
             endif()
             file(REMOVE_RECURSE ${ROOT}/${LIB64_PATH})
             file(MAKE_DIRECTORY ${ROOT}/${LIB64_PATH})
-            file(RENAME 
-                ${TEMP}/${LIB64_PATH}/${LIB64_NAME} 
+            file(RENAME
+                ${TEMP}/${LIB64_PATH}/${LIB64_NAME}
                 ${ROOT}/${LIB64_PATH}/${LIB64_NAME}
             )
             file(REMOVE_RECURSE ${TEMP}/${LIB64_PATH})
@@ -488,7 +488,7 @@ function(nodejs_init)
         list(APPEND INCLUDE_DIRS ${NODEJS_NAN_DIR})
     endif()
 
-    # Under windows, we need a bunch of libraries (due to the way 
+    # Under windows, we need a bunch of libraries (due to the way
     # dynamic linking works)
     if(WIN32)
         # Generate and use a delay load hook to allow the node binary
@@ -496,19 +496,19 @@ function(nodejs_init)
         set(DELAY_LOAD_HOOK ${CMAKE_CURRENT_BINARY_DIR}/win_delay_load_hook.c)
         nodejs_generate_delayload_hook(${DELAY_LOAD_HOOK})
         set(SOURCES ${DELAY_LOAD_HOOK})
-        
+
         # Necessary flags to get delayload working correctly
-        list(APPEND LINK_FLAGS 
-            "/IGNORE:4199"
-            "/DELAYLOAD:iojs.exe"
-            "/DELAYLOAD:node.exe"
-            "/DELAYLOAD:node.dll"
+        list(APPEND LINK_FLAGS
+            "-IGNORE:4199"
+            "-DELAYLOAD:iojs.exe"
+            "-DELAYLOAD:node.exe"
+            "-DELAYLOAD:node.dll"
         )
 
         # Core system libraries used by node
         list(APPEND LIBRARIES
             kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib
-            advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib 
+            advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib
             odbc32.lib Shlwapi.lib DelayImp.lib
         )
 
@@ -550,8 +550,8 @@ endfunction()
 function(add_nodejs_module NAME)
     # Make sure node is initialized (variables set) before defining the module
     if(NOT NODEJS_INIT)
-        message(FATAL_ERROR 
-            "Node.js has not been initialized. " 
+        message(FATAL_ERROR
+            "Node.js has not been initialized. "
             "Call nodejs_init before adding any modules"
         )
     endif()
@@ -559,8 +559,8 @@ function(add_nodejs_module NAME)
     # ncmake takes care of this, but be sure to set CMAKE_BUILD_TYPE yourself
     # if invoking CMake directly
     if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
-        message(FATAL_ERROR 
-            "Configuration type must be specified. " 
+        message(FATAL_ERROR
+            "Configuration type must be specified. "
             "Set CMAKE_BUILD_TYPE or use a different generator"
         )
     endif()
@@ -571,7 +571,7 @@ function(add_nodejs_module NAME)
     # Two helpful ones:
     # MODULE_NAME must match the name of the build library, define that here
     # ${NAME}_BUILD is for symbol visibility under windows
-    target_compile_definitions(${NAME} 
+    target_compile_definitions(${NAME}
         PRIVATE MODULE_NAME=${NAME}
         PRIVATE ${NAME}_BUILD
         PUBLIC ${NODEJS_DEFINITIONS}
@@ -579,8 +579,8 @@ function(add_nodejs_module NAME)
     # This properly defines includes for the module
     target_include_directories(${NAME} PUBLIC ${NODEJS_INCLUDE_DIRS})
 
-    # Add link flags to the module (TODO: Needs testing under windows)
-    target_link_libraries(${NAME} ${NODEJS_LINK_FLAGS})
+    # Add link flags to the module
+    target_link_libraries(${NAME} ${NODEJS_LINK_FLAGS} ${NODEJS_LIBRARIES})
 
     # Set required properties for the module to build properly
     # Correct naming, symbol visiblity and C++ standard
@@ -601,7 +601,7 @@ function(add_nodejs_module NAME)
     # Multi-target generators do this automatically
     # This (luckily) mirrors node-gyp conventions
     if(NOT CMAKE_CONFIGURATION_TYPES)
-        set_property(TARGET ${NAME} PROPERTY 
+        set_property(TARGET ${NAME} PROPERTY
             LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BUILD_TYPE}
         )
     endif()
