@@ -580,7 +580,7 @@ function(add_nodejs_module NAME)
     target_include_directories(${NAME} PUBLIC ${NODEJS_INCLUDE_DIRS})
 
     # Add link flags to the module
-    target_link_libraries(${NAME} ${NODEJS_LINK_FLAGS} ${NODEJS_LIBRARIES})
+    target_link_libraries(${NAME} ${NODEJS_LIBRARIES})
 
     # Set required properties for the module to build properly
     # Correct naming, symbol visiblity and C++ standard
@@ -594,6 +594,7 @@ function(add_nodejs_module NAME)
         POSITION_INDEPENDENT_CODE TRUE
         CMAKE_CXX_STANDARD_REQUIRED TRUE
         CXX_STANDARD 11
+        LINK_FLAGS "${NODEJS_LINK_FLAGS}"
     )
 
     # Make sure we're buiilding in a build specific output directory
