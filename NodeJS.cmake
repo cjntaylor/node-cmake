@@ -227,6 +227,9 @@ function(nodejs_init)
 
     # Create a temporary download directory
     set(TEMP ${CMAKE_CURRENT_BINARY_DIR}/temp)
+    if(EXISTS ${TEMP})
+        file(REMOVE_RECURSE ${TEMP})
+    endif()
     file(MAKE_DIRECTORY ${TEMP})
 
     # Unless the target is special version "latest", the parameters
