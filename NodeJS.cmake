@@ -30,12 +30,21 @@ macro(find_nodejs_module NAME BASE PATH)
 endmacro()
 
 # Download with a bit of nice output (without spewing progress)
-function(download_file URL)
+function(download_file DESCRIPTION URL FILE)
     message(STATUS "Downloading: ${URL}")
     file(DOWNLOAD
         ${URL}
+        ${FILE}.tmp
         ${ARGN}
+        STATUS RESULT
     )
+    list(GET RESULT 0 STATUS)
+    if(STATUS)
+        list(GET result 1 MESSAGE)
+        message(FATAL_ERROR "Unable to download ${DESCRIPTION} from ${URL}: ${MESSAGE}")
+    else()
+        file(RENAME ${FILE}.tmp ${FILE})
+    endif()
 endfunction()
 
 # Embedded win_delay_load_hook file so that this file can be copied
@@ -248,18 +257,11 @@ function(nodejs_init)
         endif()
         file(REMOVE ${TEMP}/CHECKSUM)
         download_file(
+            "checksum file"
             ${URL}/${VERSION}/${CHECKSUM}
             ${TEMP}/CHECKSUM
             INACTIVITY_TIMEOUT 10
-            STATUS CHECKSUM_STATUS
         )
-        list(GET CHECKSUM_STATUS 0 CHECKSUM_STATUS)
-        if(CHECKSUM_STATUS GREATER 0)
-            file(REMOVE ${TEMP}/CHECKSUM)
-            message(FATAL_ERROR
-                "Unable to download checksum file"
-            )
-        endif()
         # Extract checksums from the temporary file
         set(CHECKSUM_TARGET ${TEMP}/CHECKSUM)
     endif()
@@ -318,17 +320,12 @@ function(nodejs_init)
     if(NOT EXISTS ${ROOT}/include)
         file(REMOVE ${TEMP}/${HEADERS_ARCHIVE})
         download_file(
+            "Node.js headers"
             ${URL}/${VERSION}/${HEADERS_ARCHIVE}
             ${TEMP}/${HEADERS_ARCHIVE}
             INACTIVITY_TIMEOUT 10
             EXPECTED_HASH ${CHECKTYPE}=${HEADERS_CHECKSUM}
-            STATUS HEADERS_STATUS
         )
-        list(GET HEADERS_STATUS 0 HEADERS_STATUS)
-        if(HEADER_STATUS GREATER 0)
-            file(REMOVE ${TEMP}/${HEADERS_ARCHIVE})
-            message(FATAL_ERROR "Unable to download Node.js headers")
-        endif()
         execute_process(
             COMMAND ${CMAKE_COMMAND} -E tar xfz ${TEMP}/${HEADERS_ARCHIVE}
             WORKING_DIRECTORY ${TEMP}
@@ -415,18 +412,12 @@ function(nodejs_init)
         if(NOT EXISTS ${ROOT}/${LIB32_PATH})
             file(REMOVE_RECURSE ${TEMP}/${LIB32_PATH})
             download_file(
+               "Node.js windows library (32-bit)"
                ${URL}/${VERSION}/${LIB32_TARGET}
                ${TEMP}/${LIB32_PATH}/${LIB32_NAME}
                INACTIVITY_TIMEOUT 10
                EXPECTED_HASH ${CHECKTYPE}=${LIB32_CHECKSUM}
-               STATUS LIB32_STATUS
             )
-            list(GET LIB32_STATUS 0 LIB32_STATUS)
-            if(LIB32_STATUS GREATER 0)
-                message(FATAL_ERROR
-                    "Unable to download Node.js windows library (32-bit)"
-                )
-            endif()
             file(REMOVE_RECURSE ${ROOT}/${LIB32_PATH})
             file(MAKE_DIRECTORY ${ROOT}/${LIB32_PATH})
             file(RENAME
@@ -453,18 +444,12 @@ function(nodejs_init)
         if(NOT EXISTS ${ROOT}/${LIB64_PATH})
             file(REMOVE_RECURSE ${TEMP}/${LIB64_PATH})
             download_file(
+               "Node.js windows library (64-bit)"
                ${URL}/${VERSION}/${LIB64_TARGET}
                ${TEMP}/${LIB64_PATH}/${LIB64_NAME}
                INACTIVITY_TIMEOUT 10
                EXPECTED_HASH ${CHECKTYPE}=${LIB64_CHECKSUM}
-               STATUS LIB64_STATUS
             )
-            list(GET LIB64_STATUS 0 LIB64_STATUS)
-            if(LIB64_STATUS GREATER 0)
-                message(FATAL_ERROR
-                    "Unable to download Node.js windows library (64-bit)"
-                )
-            endif()
             file(REMOVE_RECURSE ${ROOT}/${LIB64_PATH})
             file(MAKE_DIRECTORY ${ROOT}/${LIB64_PATH})
             file(RENAME
