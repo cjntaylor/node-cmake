@@ -570,10 +570,8 @@ function(add_nodejs_module NAME)
     # Add compiler defines for the module
     # Two helpful ones:
     # MODULE_NAME must match the name of the build library, define that here
-    # ${NAME}_BUILD is for symbol visibility under windows
     target_compile_definitions(${NAME}
         PRIVATE MODULE_NAME=${NAME}
-        PRIVATE ${NAME}_BUILD
         PUBLIC ${NODEJS_DEFINITIONS}
     )
     # This properly defines includes for the module
