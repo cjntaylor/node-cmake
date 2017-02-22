@@ -227,6 +227,9 @@ function(nodejs_init)
 
     # Create a temporary download directory
     set(TEMP ${CMAKE_CURRENT_BINARY_DIR}/temp)
+    if(EXISTS ${TEMP})
+        file(REMOVE_RECURSE ${TEMP})
+    endif()
     file(MAKE_DIRECTORY ${TEMP})
 
     # Unless the target is special version "latest", the parameters
@@ -548,6 +551,14 @@ endfunction()
 # correctly. Feel free to use it as a model to do this by hand (or to
 # tweak this configuration if you need something custom).
 function(add_nodejs_module NAME)
+    # Validate name parameter (must be a valid C identifier)
+    string(MAKE_C_IDENTIFIER ${NAME} ${NAME}_SYMBOL_CHECK)
+    if(NOT "${NAME}" STREQUAL "${${NAME}_SYMBOL_CHECK}")
+        message(FATAL_ERROR
+            "Module name must be a valid C identifier. "
+            "Suggested alternative: '${${NAME}_SYMBOL_CHECK}'"
+        )
+    endif()
     # Make sure node is initialized (variables set) before defining the module
     if(NOT NODEJS_INIT)
         message(FATAL_ERROR
@@ -571,9 +582,10 @@ function(add_nodejs_module NAME)
     # Two helpful ones:
     # MODULE_NAME must match the name of the build library, define that here
     # ${NAME}_BUILD is for symbol visibility under windows
+    string(TOUPPER "${NAME}_BUILD" ${NAME}_BUILD_DEF)
     target_compile_definitions(${NAME}
         PRIVATE MODULE_NAME=${NAME}
-        PRIVATE ${NAME}_BUILD
+        PRIVATE ${${NAME}_BUILD_DEF}
         PUBLIC ${NODEJS_DEFINITIONS}
     )
     # This properly defines includes for the module
