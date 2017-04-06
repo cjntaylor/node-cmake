@@ -208,7 +208,7 @@ function(nodejs_init)
         endif()
         # Fall back to the "latest" version if node isn't installed
         set(VERSION ${NODEJS_VERSION_FALLBACK})
-        find_program(NODEJS_BINARY NAMES nodejs node)
+        find_program(NODEJS_BINARY NAMES node nodejs)
         if(NODEJS_BINARY)
             execute_process(
                 COMMAND ${NODEJS_BINARY} --version
