@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "nan": "*",
-    "which": "^1.2.10",
+    "which": "^1.2.14",
     "yargs": "^7.0.2"
   },
   "devDependencies": {},
