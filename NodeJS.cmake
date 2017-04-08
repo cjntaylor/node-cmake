@@ -208,7 +208,12 @@ function(nodejs_init)
         endif()
         # Fall back to the "latest" version if node isn't installed
         set(VERSION ${NODEJS_VERSION_FALLBACK})
-        find_program(NODEJS_BINARY NAMES nodejs node)
+        # This has all of the implications of why the binary is called nodejs in the first place
+        # https://lists.debian.org/debian-devel-announce/2012/07/msg00002.html
+        # However, with nvm/n, its nearly standard to have a proper 'node' binary now (since the
+        # apt-based one is so out of date), so for now just assume that this rare binary conflict
+        # case is the degenerate case. May need a more complicated solution later.
+        find_program(NODEJS_BINARY NAMES node nodejs)
         if(NODEJS_BINARY)
             execute_process(
                 COMMAND ${NODEJS_BINARY} --version
