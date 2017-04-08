@@ -1,7 +1,7 @@
 {
   "name": "node-cmake",
   "author": "Colin Taylor <cjntaylor@gmail.com>",
-  "version": "2.2.1",
+  "version": "2.3.0",
   "description": "A CMake-based build system for node.js native modules",
   "keywords": [
     "cmake",
@@ -19,8 +19,8 @@
   },
   "dependencies": {
     "nan": "*",
-    "which": "^1.2.10",
-    "yargs": "^5.0.0"
+    "which": "^1.2.14",
+    "yargs": "^7.0.2"
   },
   "devDependencies": {},
   "repository": {

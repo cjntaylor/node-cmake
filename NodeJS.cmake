@@ -32,10 +32,15 @@ endmacro()
 # Download with a bit of nice output (without spewing progress)
 function(download_file URL)
     message(STATUS "Downloading: ${URL}")
+    file(APPEND ${TEMP}/download.log "Downloading: ${URL}\n")
+    file(APPEND ${TEMP}/download.log "----------------------------------------\n")
     file(DOWNLOAD
         ${URL}
         ${ARGN}
+        LOG DOWNLOAD_LOG
     )
+    file(APPEND ${TEMP}/download.log ${DOWNLOAD_LOG})
+    file(APPEND ${TEMP}/download.log "----------------------------------------\n")
 endfunction()
 
 # Embedded win_delay_load_hook file so that this file can be copied
@@ -208,7 +213,12 @@ function(nodejs_init)
         endif()
         # Fall back to the "latest" version if node isn't installed
         set(VERSION ${NODEJS_VERSION_FALLBACK})
-        find_program(NODEJS_BINARY NAMES nodejs node)
+        # This has all of the implications of why the binary is called nodejs in the first place
+        # https://lists.debian.org/debian-devel-announce/2012/07/msg00002.html
+        # However, with nvm/n, its nearly standard to have a proper 'node' binary now (since the
+        # apt-based one is so out of date), so for now just assume that this rare binary conflict
+        # case is the degenerate case. May need a more complicated solution later.
+        find_program(NODEJS_BINARY NAMES node nodejs)
         if(NODEJS_BINARY)
             execute_process(
                 COMMAND ${NODEJS_BINARY} --version
@@ -606,7 +616,7 @@ function(add_nodejs_module NAME)
         POSITION_INDEPENDENT_CODE TRUE
         CMAKE_CXX_STANDARD_REQUIRED TRUE
         CXX_STANDARD 11
-        LINK_FLAGS "${NODEJS_LINK_FLAGS}"
+        LINK_FLAGS ${NODEJS_LINK_FLAGS}
     )
 
     # Make sure we're buiilding in a build specific output directory

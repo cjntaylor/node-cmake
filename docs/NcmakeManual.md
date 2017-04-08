@@ -1,6 +1,6 @@
 # ncmake Manual
 
-Usage: `ncmake [options] <command>`
+Usage: `ncmake [options] <command> (-- [cmake options])`
 
 Only a single command is interpreted. Options should precede the command but can occur in any order.
 
@@ -37,6 +37,12 @@ Only a single command is interpreted. Options should precede the command but can
 | `--name`                          | The executable target name (default="node")
 | `-g`, `--generator`               | The CMake generator to use
 
+#### CMake options
+
+Additional options can be passed to CMake during any configure step by passsing a `--` separator
+followed by any arguments. This is useful to set additional parameters (`-D` flags) unique to your project.
+
+Ncmake translates several of its own options into `-D` flags passed to cmake. The default behaviour of cmake is that the last value passed via command line wins. Ncmake uses the flag `-DCMAKE_BUILD_TYPE`, which is set to ensure the binary output directory matches node-gyp's behaviour. If you override this property, ncmake makes no guarantee of proper execution. To ensure proper execution, use the `-d` flag to switch between `Debug` and `Release` output instead of setting the value directly. **YOU HAVE BEEN WARNED.**
 
 ### Deprecated options
 
@@ -71,3 +77,7 @@ Build the module in debug mode
     ncmake --target v6.2.1 rebuild
 
 Build a module targeting `v6.2.1` of Node.js
+
+    ncmake rebuild -- -DMY_PROJECT_ARG=10
+
+Build a module, passing additional arguments directly to cmake.
