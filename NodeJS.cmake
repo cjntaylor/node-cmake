@@ -32,10 +32,15 @@ endmacro()
 # Download with a bit of nice output (without spewing progress)
 function(download_file URL)
     message(STATUS "Downloading: ${URL}")
+    file(APPEND ${TEMP}/download.log "Downloading: ${URL}\n")
+    file(APPEND ${TEMP}/download.log "----------------------------------------\n")
     file(DOWNLOAD
         ${URL}
         ${ARGN}
+        LOG DOWNLOAD_LOG
     )
+    file(APPEND ${TEMP}/download.log ${DOWNLOAD_LOG})
+    file(APPEND ${TEMP}/download.log "----------------------------------------\n")
 endfunction()
 
 # Embedded win_delay_load_hook file so that this file can be copied
