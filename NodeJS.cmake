@@ -606,6 +606,7 @@ function(add_nodejs_module NAME)
 
     # Set required properties for the module to build properly
     # Correct naming, symbol visiblity and C++ standard
+    string(REPLACE ";" " " NODEJS_LINK_FLAGS_STR "${NODEJS_LINK_FLAGS}")
     set_target_properties(${NAME} PROPERTIES
         OUTPUT_NAME ${NAME}
         PREFIX ""
@@ -616,7 +617,7 @@ function(add_nodejs_module NAME)
         POSITION_INDEPENDENT_CODE TRUE
         CMAKE_CXX_STANDARD_REQUIRED TRUE
         CXX_STANDARD 11
-        LINK_FLAGS ${NODEJS_LINK_FLAGS}
+        LINK_FLAGS ${NODEJS_LINK_FLAGS_STR}
     )
 
     # Make sure we're buiilding in a build specific output directory
