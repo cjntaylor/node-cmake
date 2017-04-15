@@ -616,8 +616,14 @@ function(add_nodejs_module NAME)
         POSITION_INDEPENDENT_CODE TRUE
         CMAKE_CXX_STANDARD_REQUIRED TRUE
         CXX_STANDARD 11
-        LINK_FLAGS ${NODEJS_LINK_FLAGS}
     )
+
+    # Handle link flag cases properly
+    # When there are link flags, they should be appended to LINK_FLAGS with space separation
+    # If the list is emtpy (true for most *NIX platforms), this is a no-op
+    foreach(NODEJS_LINK_FLAG IN LISTS NODEJS_LINK_FLAGS)
+        set_property(TARGET ${NAME} APPEND_STRING PROPERTY LINK_FLAGS ${NODEJS_LINK_FLAG})
+    endforeach()
 
     # Make sure we're buiilding in a build specific output directory
     # Only necessary on single-target generators (Make, Ninja)
