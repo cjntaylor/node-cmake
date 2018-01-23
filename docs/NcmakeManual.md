@@ -13,7 +13,7 @@ Only a single command is interpreted. Options should precede the command but can
 | `configure`   | Runs CMake to generate the project configuration
 | `rebuild`     | Runs clean, configure and build
 | `update`      | Copies the NodeJS.cmake from the installed module
-| `install`     | Deprecated `node-gyp` command (no-op)
+| `install`     | (Advanced) Installs the native addon
 | `list`        | Deprecated `node-gyp` command (no-op)
 | `remove`      | Deprecated `node-gyp` command (no-op)
 
@@ -35,7 +35,9 @@ Only a single command is interpreted. Options should precede the command but can
 | `--target`                        | Node version to build for (default="installed")
 | `--dist-url`                      | Download dependencies from custom URL
 | `--name`                          | The executable target name (default="node")
+| `-o`, `--output`                  | The output directory (default="build")
 | `-g`, `--generator`               | The CMake generator to use
+| `-a`, `--arch`                    | The target architecture (see process.arch)
 
 #### CMake options
 
@@ -58,7 +60,6 @@ All deprecated options are silently ignored
 | `-C $dir`, `--directory=$dir`     | Ignored
 | `--make=$make`                    | Ignored
 | `--thin=yes`                      | Ignored
-| `--arch=$arch`                    | Ignored
 | `--tarball=$path`                 | Ignored
 | `--ensure`                        | Ignored
 | `--proxy=$url`                    | Ignored
