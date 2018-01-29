@@ -20,6 +20,7 @@
 #include <Shlwapi.h>
 #include <delayimp.h>
 #include <string.h>
+#include <tchar.h>
 
 static FARPROC WINAPI load_exe_hook(unsigned int event, DelayLoadInfo* info) {
   if (event != dliNotePreLoadLibrary) return NULL;
@@ -37,19 +38,19 @@ static FARPROC WINAPI load_exe_hook(unsigned int event, DelayLoadInfo* info) {
   GetModuleFileName(processModule, processPath, _MAX_PATH);
 
   // Get the name of the current executable.
-  LPSTR processName = PathFindFileName(processPath);
+  LPTSTR processName = PathFindFileName(processPath);
 
   // If the current process is node or iojs, then just return the proccess 
   // module.
-  if (_stricmp(processName, "node.exe") == 0 ||
-      _stricmp(processName, "iojs.exe") == 0) {
+  if (_tcsicmp(processName, TEXT("node.exe")) == 0 ||
+      _tcsicmp(processName, TEXT("iojs.exe")) == 0) {
     return (FARPROC) processModule;
   }
 
   // If it is another process, attempt to load 'node.dll' from the same 
   // directory.
   PathRemoveFileSpec(processPath);
-  PathAppend(processPath, "node.dll");
+  PathAppend(processPath, TEXT("node.dll"));
 
   HMODULE nodeDllModule = GetModuleHandle(processPath);
   if(nodeDllModule != NULL) {
