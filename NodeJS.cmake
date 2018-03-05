@@ -414,18 +414,22 @@ function(nodejs_init)
     if(WIN32)
         # Download the win32 library for linking
         file(STRINGS
-            ${ROOT}/CHECKSUM LIB32_CHECKSUM
-            LIMIT_COUNT 1
+            ${ROOT}/CHECKSUM LIB32_CHECKSUMS
             REGEX ${LIB32_MATCH}
         )
+        foreach(LINE IN LISTS LIB32_CHECKSUMS)
+            string(REGEX MATCH ${LIB32_MATCH} LIB32_CHECKSUM_MATCHED ${LINE})
+            if(${CMAKE_MATCH_4} STREQUAL ${NAME})
+                set(LIB32_CHECKSUM ${CMAKE_MATCH_1})
+                set(LIB32_PATH     win-x86)
+                set(LIB32_NAME     ${CMAKE_MATCH_4}${CMAKE_MATCH_5})
+                set(LIB32_TARGET   ${CMAKE_MATCH_2}${CMAKE_MATCH_3}${LIB32_NAME})
+                break()
+            endif()
+        endforeach()
         if(NOT LIB32_CHECKSUM)
             message(FATAL_ERROR "Unable to extract x86 library checksum")
         endif()
-        string(REGEX MATCH ${LIB32_MATCH} LIB32_CHECKSUM ${LIB32_CHECKSUM})
-        set(LIB32_CHECKSUM ${CMAKE_MATCH_1})
-        set(LIB32_PATH     win-x86)
-        set(LIB32_NAME     ${CMAKE_MATCH_4}${CMAKE_MATCH_5})
-        set(LIB32_TARGET   ${CMAKE_MATCH_2}${CMAKE_MATCH_3}${LIB32_NAME})
         if(NOT EXISTS ${ROOT}/${LIB32_PATH})
             file(REMOVE_RECURSE ${TEMP}/${LIB32_PATH})
             download_file(
@@ -452,18 +456,22 @@ function(nodejs_init)
 
         # Download the win64 library for linking
         file(STRINGS
-            ${ROOT}/CHECKSUM LIB64_CHECKSUM
-            LIMIT_COUNT 1
+            ${ROOT}/CHECKSUM LIB64_CHECKSUMS
             REGEX ${LIB64_MATCH}
         )
+        foreach(LINE IN LISTS LIB64_CHECKSUMS)
+            string(REGEX MATCH ${LIB64_MATCH} LIB64_CHECKSUM_MATCHED ${LINE})
+            if(${CMAKE_MATCH_4} STREQUAL ${NAME})
+                set(LIB64_CHECKSUM ${CMAKE_MATCH_1})
+                set(LIB64_PATH     win-x64)
+                set(LIB64_NAME     ${CMAKE_MATCH_4}${CMAKE_MATCH_5})
+                set(LIB64_TARGET   ${CMAKE_MATCH_2}${CMAKE_MATCH_3}${LIB64_NAME})
+                break()
+            endif()
+        endforeach()
         if(NOT LIB64_CHECKSUM)
             message(FATAL_ERROR "Unable to extract x64 library checksum")
         endif()
-        string(REGEX MATCH ${LIB64_MATCH} LIB64_CHECKSUM ${LIB64_CHECKSUM})
-        set(LIB64_CHECKSUM ${CMAKE_MATCH_1})
-        set(LIB64_PATH     win-x64)
-        set(LIB64_NAME     ${CMAKE_MATCH_4}${CMAKE_MATCH_5})
-        set(LIB64_TARGET   ${CMAKE_MATCH_2}${CMAKE_MATCH_3}${LIB64_NAME})
         if(NOT EXISTS ${ROOT}/${LIB64_PATH})
             file(REMOVE_RECURSE ${TEMP}/${LIB64_PATH})
             download_file(
