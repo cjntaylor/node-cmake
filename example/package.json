@@ -11,10 +11,13 @@
   "license": "ISC",
   "main": "index.js",
   "scripts": {
-    "install": "ncmake rebuild"
+    "install": "ncmake rebuild",
+    "clean": "ncmake clean",
+    "distclean": "ncmake distclean"
   },
   "repository": {},
   "devDependencies": {
-    "node-cmake": "2.x"
+    "node-cmake": "^2.5.1",
+    "nan": "^2.10.0"
   }
 }
