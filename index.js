@@ -1,11 +1,12 @@
 'use strict';
 var fs = require('fs');
+var parentModule = require('parent-module');
 var path = require('path');
 
 function requireNativeModule(name, debug) {
   // Search relative to the file that included this one
-  var base = path.dirname(module.parent.filename);
-  
+  var base = path.dirname(parentModule());
+
   // Suffixes to search for (in each mode)
   // Both are used, debug just changes which is tried first
   var search = {
@@ -17,7 +18,7 @@ function requireNativeModule(name, debug) {
   var location;
   var same = 0;
   var found = false;
-  
+
   // Walk upward to the root of the current drive
   while(same < 2 || found) {
     try {
