@@ -134,7 +134,7 @@ function(nodejs_init)
     endif()
 
     # Regex patterns used by the init function for component extraction
-    set(HEADERS_MATCH "^([A-Fa-f0-9]+)[ \t]+([^-]+)-(headers|v?[0-9.]+)-(headers|v?[0-9.]+)([.]tar[.]gz)$")
+    set(HEADERS_MATCH "^([A-Fa-f0-9]+)[ \t]+([^-]+)-(headers|v?[0-9.]+(-beta[0-9.]+)?)-(headers|v?[0-9.]+)([.]tar[.]gz)$")
     set(LIB32_MATCH "(^[0-9A-Fa-f]+)[\t ]+(win-x86)?(/)?([^/]*)(.lib)$")
     set(LIB64_MATCH "(^[0-9A-Fa-f]+)[\t ]+(win-)?(x64/)(.*)(.lib)$")
 
@@ -296,13 +296,13 @@ function(nodejs_init)
     string(REGEX MATCH ${HEADERS_MATCH} HEADERS_CHECKSUM ${HEADERS_CHECKSUM})
     set(HEADERS_CHECKSUM ${CMAKE_MATCH_1})
     set(NAME ${CMAKE_MATCH_2})
-    if(CMAKE_MATCH_3 STREQUAL "headers")
-        set(VERSION ${CMAKE_MATCH_4})
+    if(CMAKE_MATCH_4 STREQUAL "headers")
+        set(VERSION ${CMAKE_MATCH_3}-${CMAKE_MATCH_4})
     else()
         set(VERSION ${CMAKE_MATCH_3})
     endif()
     set(HEADERS_ARCHIVE
-        ${CMAKE_MATCH_2}-${CMAKE_MATCH_3}-${CMAKE_MATCH_4}${CMAKE_MATCH_5}
+        ${CMAKE_MATCH_2}-${CMAKE_MATCH_3}-${CMAKE_MATCH_5}${CMAKE_MATCH_6}
     )
     # Make sure that the root directory exists, and that the checksum
     # file has been moved over from temp
@@ -313,6 +313,7 @@ function(nodejs_init)
     if(DEFINED OLD_ROOT AND NOT ROOT STREQUAL "${OLD_ROOT}")
         file(REMOVE ${TEMP}/CHECKSUM)
         file(REMOVE ${ROOT}/CHECKSUM)
+        message("${ROOT} -> ${OLD_ROOT}")
         message(FATAL_ERROR "Version/Name mismatch")
     endif()
     file(MAKE_DIRECTORY ${ROOT})
@@ -360,6 +361,7 @@ function(nodejs_init)
                 ${TEMP}/${NODEJS_DEFAULT_NAME}-${VERSION}-headers
                 ${TEMP}/${NODEJS_DEFAULT_NAME}-${VERSION}
                 ${TEMP}/${NODEJS_DEFAULT_NAME}
+                ${TEMP}/${NODEJS_DEFAULT_NAME}_headers
                 ${TEMP}
             NO_DEFAULT_PATH
         )
@@ -636,3 +638,4 @@ function(add_nodejs_module NAME)
         )
     endif()
 endfunction()
+
