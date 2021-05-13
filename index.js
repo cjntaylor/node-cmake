@@ -10,8 +10,14 @@ function requireNativeModule(name, debug) {
   // Suffixes to search for (in each mode)
   // Both are used, debug just changes which is tried first
   var search = {
-    debug: path.join('build', 'Debug', name + '.node'),
-    release: path.join('build', 'Release', name + '.node')
+    debug: [
+      path.join('build', 'Debug', name + '.node'),
+      path.join('cmake-build-debug', name + '.node')
+    ],
+    release: [
+      path.join('build', 'Release', name + '.node'),
+      path.join('cmake-build-release', name + '.node')
+    ]
   };
 
   var root = base;
@@ -22,14 +28,38 @@ function requireNativeModule(name, debug) {
   // Walk upward to the root of the current drive
   while(same < 2 || found) {
     try {
-      location = path.join(root, (debug) ? search.debug : search.release);
-      found = fs.statSync(location);
+      const paths = (debug) ? search.debug : search.release;
+      for(const p of paths)
+      {
+        location = path.join(root, p);
+        found = false;
+        try {
+          found = fs.statSync(location);
+        }
+        catch(e){}
+        if (found)
+        {
+          break;
+        }
+      }
     }
     catch(e) {}
     if(!found) {
       try {
-        location = path.join(root, (debug) ? search.release : search.debug);
-        found = fs.statSync(location);
+        const paths = (debug) ? search.release : search.debug;
+        for(const p of paths)
+        {
+          location = path.join(root, p);
+          found = false;
+          try {
+            found = fs.statSync(location);
+          }
+          catch(e){}
+          if (found)
+          {
+            break;
+          }
+        }
       }
       catch(e) {}
     }
